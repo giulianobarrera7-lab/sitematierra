@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de Puesta a Tierra — AEA 90364</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="app-header">
+  <h1>Calculadora de Puesta a Tierra (PAT)</h1>
+  <p class="subtitle">AEA 90364-7-770 (esquema TT) · Método de Wenner / Dwight / Caída de potencial (62%)</p>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button class="tab-btn active" data-tab="jabalina">1. Resistividad y Jabalina</button>
+  <button class="tab-btn" data-tab="malla">2. Malla / Electrodo</button>
+  <button class="tab-btn" data-tab="mediciones">3. Mediciones (Telurómetro)</button>
+  <button class="tab-btn" data-tab="protocolo">4. Protocolo 62% (multipunto)</button>
+  <button class="tab-btn" data-tab="referencias">5. Referencias y Normas</button>
+</nav>
+
+<main>
+
+<!-- ============ TAB 1: JABALINA ============ -->
+<section class="tab-panel active" id="tab-jabalina">
+
+  <div class="card">
+    <h2>1) Resistividad del suelo — Método de Wenner</h2>
+    <div class="grid-3">
+      <label>a — distancia entre electrodos (m)
+        <input type="number" id="w_a" value="20" step="0.1" min="0.1">
+      </label>
+      <label>b — profundidad de los electrodos (m)
+        <input type="number" id="w_b" value="0.3" step="0.05" min="0">
+      </label>
+      <label>R — resistencia leída en el telurómetro (Ω)
+        <input type="number" id="w_r" value="25" step="0.1" min="0">
+      </label>
+    </div>
+    <div class="result-row">
+      <span class="result-label">ρ — resistividad medida (Wenner, con profundidad)</span>
+      <span class="result-value" id="w_rho">—</span>
+      <span class="unit">Ω·m</span>
+    </div>
+    <p class="hint">Fórmula completa de Wenner: ρ = 4πaR / (1 + 2a/√(a²+4b²) − a/√(a²+b²))</p>
+  </div>
+
+  <div class="card">
+    <h2>ρ de diseño</h2>
+    <div class="grid-2">
+      <label>Fuente del ρ adoptado
+        <select id="rho_source">
+          <option value="wenner" selected>Usar medición de Wenner (arriba)</option>
+          <option value="mediciones">Usar perfil de resistividad (pestaña Mediciones)</option>
+          <option value="manual">Valor manual</option>
+          <option value="soil">Tipo de suelo (tabla)</option>
+        </select>
+      </label>
+      <label id="rho_manual_wrap" class="hidden">Valor manual (Ω·m)
+        <input type="number" id="rho_manual" value="100" step="1" min="0">
+      </label>
+      <label id="rho_soil_wrap" class="hidden">Tipo de suelo
+        <select id="rho_soil"></select>
+      </label>
+    </div>
+    <div class="result-row highlight">
+      <span class="result-label">ρ de diseño adoptado</span>
+      <span class="result-value" id="rho_design">—</span>
+      <span class="unit">Ω·m</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>2) Jabalina individual — Fórmula de Dwight</h2>
+    <div class="grid-3">
+      <label>L — longitud de la jabalina (m)
+        <input type="number" id="j_L" value="3" step="0.1" min="0.1">
+      </label>
+      <label>Ø — diámetro exterior
+        <select id="j_d">
+          <option value="12.6">1/2" (12,6 mm)</option>
+          <option value="14.6">5/8" (14,6 mm)</option>
+          <option value="16.2" selected>3/4" (16,2 mm)</option>
+          <option value="custom">Otro (mm)…</option>
+        </select>
+      </label>
+      <label id="j_d_custom_wrap" class="hidden">Diámetro personalizado (mm)
+        <input type="number" id="j_d_custom" value="16.2" step="0.1" min="1">
+      </label>
+    </div>
+    <p class="hint">Norma IRAM 2309/2310. R₁ = ρ/(2πL)·(ln(4L/a) − 1), con a = Ø/2</p>
+    <div class="result-row">
+      <span class="result-label">R₁ — resistencia de 1 jabalina</span>
+      <span class="result-value" id="j_r1">—</span>
+      <span class="unit">Ω</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>3) Varias jabalinas en paralelo</h2>
+    <div class="grid-3">
+      <label>s — separación entre jabalinas (m)
+        <input type="number" id="j_s" value="20" step="0.5" min="0.1">
+      </label>
+      <label>n — cantidad de jabalinas
+        <input type="number" id="j_n" value="2" step="1" min="1">
+      </label>
+    </div>
+    <p class="hint">Recomendado: s ≥ L (idealmente 2·L). Rm = ρ/(2π·s) — acoplamiento. Rn = (R₁ + (n−1)·Rm)/n</p>
+    <div class="result-row">
+      <span class="result-label">Rm — resistencia mutua (acoplamiento)</span>
+      <span class="result-value" id="j_rm">—</span>
+      <span class="unit">Ω</span>
+    </div>
+    <div class="result-row highlight">
+      <span class="result-label">Rn — resistencia del conjunto</span>
+      <span class="result-value" id="j_rn">—</span>
+      <span class="unit">Ω</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>4) Objetivo y cantidad de jabalinas necesarias</h2>
+    <div class="grid-2">
+      <label>R objetivo — límite de diseño (Ω)
+        <input type="number" id="j_target" value="10" step="0.5" min="0.1">
+      </label>
+      <span class="hint">Reglamento: ≤10 Ω si hay protección diferencial (preferentemente ≤5 Ω); AEA 90364-7-771: ≤40 Ω máx. en esquema TT (Anexo 771-C). Ajustá según tu proyecto.</span>
+    </div>
+    <div class="result-row">
+      <span class="result-label">n necesarias (estimado)</span>
+      <span class="result-value" id="j_n_needed">—</span>
+      <span class="unit">u</span>
+    </div>
+    <div class="result-row">
+      <span class="result-label">Rn con n necesarias</span>
+      <span class="result-value" id="j_rn_needed">—</span>
+      <span class="unit">Ω</span>
+    </div>
+    <div class="result-row">
+      <span class="result-label">¿Cumple objetivo con la configuración actual (n de arriba)?</span>
+      <span class="result-value" id="j_meets">—</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>5) Distancia "tierra lejana" (AEA 770.3)</h2>
+    <div class="result-row">
+      <span class="result-label">Re — radio equivalente (geométrico)</span>
+      <span class="result-value" id="j_re">—</span>
+      <span class="unit">m</span>
+    </div>
+    <div class="result-row">
+      <span class="result-label">Distancia mínima a la tierra de servicio (≥10·Re)</span>
+      <span class="result-value" id="j_dmin">—</span>
+      <span class="unit">m</span>
+    </div>
+    <div class="result-row">
+      <span class="result-label">Separación mínima entre jabalinas (≥2·Re, no solaparse)</span>
+      <span class="result-value" id="j_smin">—</span>
+      <span class="unit">m</span>
+    </div>
+  </div>
+
+</section>
+
+<!-- ============ TAB 2: MALLA ============ -->
+<section class="tab-panel" id="tab-malla">
+
+  <div class="card">
+    <h2>Configuración del electrodo</h2>
+    <label>Modo de cálculo
+      <select id="m_mode">
+        <option value="A">A — Malla reticulada (Sverak / Laurent)</option>
+        <option value="B" selected>B — Cable desnudo enterrado + jabalinas</option>
+      </select>
+    </label>
+    <p class="hint">ρ de diseño usado: <strong id="m_rho_display">—</strong> Ω·m (viene de la pestaña 1)</p>
+  </div>
+
+  <div class="card">
+    <h2>Datos de entrada</h2>
+    <div class="grid-3">
+      <label>h — profundidad de enterramiento (m)
+        <input type="number" id="m_h" value="0.6" step="0.05" min="0.1">
+      </label>
+      <label>Sección del cable de Cu desnudo (mm²)
+        <input type="number" id="m_section" value="35" step="1" min="1">
+      </label>
+      <label>Ø jabalina
+        <select id="m_jd">
+          <option value="12.6">1/2" (12,6 mm)</option>
+          <option value="14.6">5/8" (14,6 mm)</option>
+          <option value="16.2" selected>3/4" (16,2 mm)</option>
+        </select>
+      </label>
+    </div>
+    <div class="grid-3" id="m_modeA_fields">
+      <label>Largo de la malla (m)
+        <input type="number" id="m_length" value="20" step="0.5" min="0.5">
+      </label>
+      <label>Ancho de la malla (m)
+        <input type="number" id="m_width" value="10" step="0.5" min="0.5">
+      </label>
+      <label>D — separación entre conductores (m)
+        <input type="number" id="m_spacing" value="4" step="0.5" min="0.5">
+      </label>
+    </div>
+    <div class="grid-3" id="m_modeB_fields">
+      <label>Longitud del cable enterrado (m)
+        <input type="number" id="m_cablelen" value="30" step="0.5" min="0.5">
+      </label>
+      <label>Jabalinas — cantidad
+        <input type="number" id="m_njab" value="3" step="1" min="0">
+      </label>
+      <label>Longitud de cada jabalina (m)
+        <input type="number" id="m_ljab" value="1.5" step="0.1" min="0.1">
+      </label>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Geometría calculada</h2>
+    <div class="result-row"><span class="result-label">Área de la malla (modo A)</span><span class="result-value" id="m_area">—</span><span class="unit">m²</span></div>
+    <div class="result-row"><span class="result-label">Longitud de conductor horizontal enterrado</span><span class="result-value" id="m_lhor">—</span><span class="unit">m</span></div>
+    <div class="result-row"><span class="result-label">Longitud total de jabalinas</span><span class="result-value" id="m_ljabtot">—</span><span class="unit">m</span></div>
+    <div class="result-row"><span class="result-label">L_T — longitud total enterrada</span><span class="result-value" id="m_ltotal">—</span><span class="unit">m</span></div>
+  </div>
+
+  <div class="card">
+    <h2>Resistencia de puesta a tierra (estimada)</h2>
+    <div class="result-row" id="m_row_sverak"><span class="result-label">R malla — Sverak (modo A)</span><span class="result-value" id="m_sverak">—</span><span class="unit">Ω</span></div>
+    <div class="result-row" id="m_row_laurent"><span class="result-label">R malla — Laurent, comparación (modo A)</span><span class="result-value" id="m_laurent">—</span><span class="unit">Ω</span></div>
+    <div class="result-row" id="m_row_cable"><span class="result-label">R del conductor horizontal solo (modo B, método de imágenes)</span><span class="result-value" id="m_cable">—</span><span class="unit">Ω</span></div>
+    <div class="result-row" id="m_row_r1"><span class="result-label">R₁ — resistencia de 1 jabalina (Dwight)</span><span class="result-value" id="m_r1">—</span><span class="unit">Ω</span></div>
+    <div class="result-row" id="m_row_rn"><span class="result-label">Rn — jabalinas en paralelo</span><span class="result-value" id="m_rn">—</span><span class="unit">Ω</span></div>
+    <div class="result-row highlight">
+      <span class="result-label">R — resistencia estimada del sistema</span>
+      <span class="result-value" id="m_rtotal">—</span>
+      <span class="unit">Ω</span>
+    </div>
+    <p class="hint" id="m_range">Rango probable (±30%): —</p>
+    <div class="grid-2">
+      <label>R objetivo (Ω)
+        <input type="number" id="m_target" value="40" step="0.5" min="0.1">
+      </label>
+      <span class="hint">AEA esquema TT admite ≤40 Ω como límite general (Anexo 771-C); ajustá según el proyecto.</span>
+    </div>
+    <div class="result-row"><span class="result-label">¿Cumple el objetivo?</span><span class="result-value" id="m_meets">—</span></div>
+  </div>
+
+  <div class="card">
+    <h2>Recomendaciones automáticas de protecciones</h2>
+    <div class="grid-3">
+      <label>Uʟ — tensión de contacto límite admisible (V)
+        <input type="number" id="m_ul" value="50" step="1" min="1">
+      </label>
+      <label>Sección del conductor de fase (mm²)
+        <input type="number" id="m_sfase" value="4" step="0.5" min="1">
+      </label>
+      <label>Condición del conductor de tierra enterrado
+        <select id="m_cond">
+          <option value="desnudo" selected>Desnudo / sin protección</option>
+          <option value="corrosion">Protegido contra corrosión</option>
+          <option value="mecanica">Protegido contra corrosión y mecánicamente</option>
+        </select>
+      </label>
+    </div>
+    <p class="hint">Uʟ usual: 50 V en ambientes secos, 25 V en locales húmedos/obras/uso agropecuario.</p>
+    <table class="calc-table">
+      <thead><tr><th>IΔn</th><th>30 mA</th><th>300 mA</th><th>500 mA</th></tr></thead>
+      <tbody>
+        <tr><td>Uc = R × IΔn (V)</td><td id="m_uc30">—</td><td id="m_uc300">—</td><td id="m_uc500">—</td></tr>
+        <tr><td>Ra máx admisible = Uʟ/IΔn (Ω)</td><td id="m_ramax30">—</td><td id="m_ramax300">—</td><td id="m_ramax500">—</td></tr>
+        <tr><td>¿Apto? (Uc ≤ Uʟ)</td><td id="m_apto30">—</td><td id="m_apto300">—</td><td id="m_apto500">—</td></tr>
+      </tbody>
+    </table>
+    <div class="result-row"><span class="result-label">Diferencial recomendado</span><span class="result-value" id="m_diff_rec">—</span></div>
+    <div class="result-row"><span class="result-label">Sección mínima del conductor de protección (PE)</span><span class="result-value" id="m_pe_section">—</span><span class="unit">mm²</span></div>
+    <div class="result-row"><span class="result-label">Sección mínima del conductor de tierra enterrado</span><span class="result-value" id="m_ground_section">—</span><span class="unit">mm²</span></div>
+    <div class="result-row"><span class="result-label">¿La sección del cable elegido alcanza?</span><span class="result-value" id="m_section_ok">—</span></div>
+    <div class="result-row"><span class="result-label">Cable a comprar para la puesta a tierra</span><span class="result-value" id="m_cable_buy">—</span></div>
+  </div>
+
+  <div class="card">
+    <h2>Identificación por color de los conductores (AEA 90364-5-51)</h2>
+    <table class="calc-table">
+      <thead><tr><th>Conductor</th><th>Color</th><th>Sección</th></tr></thead>
+      <tbody>
+        <tr><td>Protección (PE) — a las masas</td><td>Verde-Amarillo</td><td id="m_color_pe">—</td></tr>
+        <tr><td>Tierra — al electrodo (zanja)</td><td id="m_color_ground_label">—</td><td id="m_color_ground_section">—</td></tr>
+        <tr><td>Neutro (N)</td><td>Celeste</td><td id="m_color_n">—</td></tr>
+        <tr><td>Fases (R/S/T)</td><td>Castaño • Negro • Rojo</td><td id="m_color_f">—</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</section>
+
+<!-- ============ TAB 3: MEDICIONES ============ -->
+<section class="tab-panel" id="tab-mediciones">
+
+  <div class="card">
+    <h2>Perfil de resistividad — telurómetro de 3 picas a profundidad variable</h2>
+    <p class="hint">ρ = 2π·a·R (Ω·m). Si ρ baja al aumentar a, el suelo mejora en profundidad y conviene jabalinas más largas.</p>
+    <table class="calc-table" id="profile-table">
+      <thead><tr><th>Nº</th><th>a — profundidad (m)</th><th>R leída (Ω)</th><th>ρ = 2πaR (Ω·m)</th><th></th></tr></thead>
+      <tbody id="profile-tbody"></tbody>
+    </table>
+    <button class="btn-secondary" id="profile-add">+ Agregar medición</button>
+    <div class="result-row"><span class="result-label">Promedio de ρ (todas las lecturas)</span><span class="result-value" id="prof_avg">—</span><span class="unit">Ω·m</span></div>
+    <div class="result-row"><span class="result-label">Máxima / Mínima</span><span class="result-value" id="prof_minmax">—</span><span class="unit">Ω·m</span></div>
+    <div class="result-row"><span class="result-label">Desvío estándar</span><span class="result-value" id="prof_std">—</span><span class="unit">Ω·m</span></div>
+    <div class="result-row"><span class="result-label">Tendencia al aumentar la profundidad</span><span class="result-value" id="prof_trend">—</span></div>
+  </div>
+
+  <div class="card">
+    <h2>Método del 62% (caída de potencial) — resistencia de la PAT instalada</h2>
+    <p class="hint">Las 3 picas en línea recta: E = puesta a tierra que se mide, S = pica de potencial (se mueve), H = pica de corriente (la más lejana, inyecta la corriente de prueba).</p>
+    <div class="grid-3">
+      <label>Mayor dimensión del sistema medido (m)
+        <input type="number" id="pm_dim" value="1.5" step="0.1" min="0.1">
+      </label>
+      <label>D — distancia desde E hasta la pica H (m)
+        <input type="number" id="pm_D" value="13" step="0.5" min="0.5">
+      </label>
+      <label>Factor de D recomendado (× dimensión)
+        <input type="number" id="pm_factor" value="5" step="0.5" min="1">
+      </label>
+    </div>
+    <div class="result-row"><span class="result-label">D mínima recomendada</span><span class="result-value" id="pm_dmin">—</span><span class="unit">m</span></div>
+    <div class="result-row"><span class="result-label">¿D alcanza?</span><span class="result-value" id="pm_dok">—</span></div>
+
+    <table class="calc-table">
+      <thead><tr><th>Posición de S</th><th>% de D</th><th>Distancia (m)</th><th>R leída (Ω)</th><th>Desvío vs 62%</th></tr></thead>
+      <tbody>
+        <tr><td>Atrás −10%</td><td>52%</td><td id="pm_pos52">—</td><td><input type="number" class="pm-reading" id="pm_r52" value="0.9" step="0.01"></td><td id="pm_dev52">—</td></tr>
+        <tr><td>Atrás −5%</td><td>57%</td><td id="pm_pos57">—</td><td><input type="number" class="pm-reading" id="pm_r57" value="0.9" step="0.01"></td><td id="pm_dev57">—</td></tr>
+        <tr><td>62% de D — lectura principal</td><td>62%</td><td id="pm_pos62">—</td><td><input type="number" class="pm-reading" id="pm_r62" value="1.0" step="0.01"></td><td id="pm_dev62">—</td></tr>
+        <tr><td>Adelante +5%</td><td>67%</td><td id="pm_pos67">—</td><td><input type="number" class="pm-reading" id="pm_r67" value="1.1" step="0.01"></td><td id="pm_dev67">—</td></tr>
+        <tr><td>Adelante +10%</td><td>72%</td><td id="pm_pos72">—</td><td><input type="number" class="pm-reading" id="pm_r72" value="1.1" step="0.01"></td><td id="pm_dev72">—</td></tr>
+      </tbody>
+    </table>
+
+    <div class="grid-2">
+      <label>Tolerancia de curva plana (±%)
+        <input type="number" id="pm_tol" value="10" step="1" min="1">
+      </label>
+      <label>¿Qué valor adoptás?
+        <select id="pm_adopt">
+          <option value="promedio" selected>Promedio de las 5 lecturas</option>
+          <option value="62">Lectura al 62%</option>
+        </select>
+      </label>
+    </div>
+    <div class="result-row"><span class="result-label">Promedio de las 5 lecturas</span><span class="result-value" id="pm_avg5">—</span><span class="unit">Ω</span></div>
+    <div class="result-row"><span class="result-label">Desvío máximo respecto del 62%</span><span class="result-value" id="pm_maxdev">—</span></div>
+    <div class="result-row"><span class="result-label">¿Curva plana? (lectura válida)</span><span class="result-value" id="pm_flat">—</span></div>
+    <div class="result-row highlight"><span class="result-label">R de PAT adoptada</span><span class="result-value" id="pm_radopted">—</span><span class="unit">Ω</span></div>
+    <div class="grid-2">
+      <label>Límite del proyecto (Ω)
+        <input type="number" id="pm_limit" value="10" step="0.5" min="0.1">
+      </label>
+    </div>
+    <div class="result-row"><span class="result-label">¿Cumple el límite?</span><span class="result-value" id="pm_complies">—</span></div>
+  </div>
+
+  <div class="card">
+    <h2>ρ adoptado para el diseño</h2>
+    <p class="hint">Es el promedio del perfil de resistividad de 3 picas de arriba. Se usa automáticamente en la pestaña 1 cuando elegís "Usar perfil de resistividad".</p>
+    <div class="result-row highlight"><span class="result-label">ρ adoptado</span><span class="result-value" id="med_rho_final">—</span><span class="unit">Ω·m</span></div>
+  </div>
+
+</section>
+
+<!-- ============ TAB 4: PROTOCOLO 62% MULTIPUNTO ============ -->
+<section class="tab-panel" id="tab-protocolo">
+
+  <div class="card">
+    <h2>Protocolo de medición de PAT — método del 62% (multipunto)</h2>
+    <div class="grid-3">
+      <label>Límite de resistencia de PAT (Ω)
+        <input type="number" id="pr_limit" value="10" step="0.5" min="0.1">
+      </label>
+      <label>Tolerancia de curva plana (±%)
+        <input type="number" id="pr_tol" value="10" step="1" min="1">
+      </label>
+      <label>Factor de D recomendado (× dimensión)
+        <input type="number" id="pr_factor" value="5" step="0.5" min="1">
+      </label>
+    </div>
+    <table class="calc-table" id="protocol-table">
+      <thead>
+        <tr>
+          <th>Nº</th><th>Identificación</th><th>D (m)</th><th>Dimensión (m)</th>
+          <th>52%</th><th>57%</th><th>62%</th><th>67%</th><th>72%</th>
+          <th>R adoptada (Ω)</th><th>¿Curva plana?</th><th>¿Cumple?</th><th></th>
+        </tr>
+      </thead>
+      <tbody id="protocol-tbody"></tbody>
+    </table>
+    <button class="btn-secondary" id="protocol-add">+ Agregar punto</button>
+
+    <div class="result-row"><span class="result-label">Puntos medidos</span><span class="result-value" id="pr_count">—</span></div>
+    <div class="result-row"><span class="result-label">R adoptada — mínima / promedio / máxima</span><span class="result-value" id="pr_stats">—</span><span class="unit">Ω</span></div>
+    <div class="result-row"><span class="result-label">Puntos que cumplen / no cumplen</span><span class="result-value" id="pr_compliance">—</span></div>
+    <div class="result-row highlight"><span class="result-label">Estado del protocolo</span><span class="result-value" id="pr_status">—</span></div>
+  </div>
+
+</section>
+
+<!-- ============ TAB 5: REFERENCIAS ============ -->
+<section class="tab-panel" id="tab-referencias">
+
+  <div class="card">
+    <h2>Resistividad típica según el terreno (Ω·m)</h2>
+    <table class="calc-table" id="soil-table-simple">
+      <thead><tr><th>Naturaleza del terreno</th><th>Resistividad (Ω·m)</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Tabla 771-C.VIII — Resistividad según tipo de suelo y clima (AEA 90364, Anexo 771-C)</h2>
+    <table class="calc-table" id="soil-table-aea">
+      <thead>
+        <tr><th>Tipo de suelo</th><th>Valor más probable (A) Ω·m</th><th>Gama A: precipitación normal (Ω·m)</th><th>Gama B: escasas precipitaciones (Ω·m)</th><th>Gama C: aguas subterráneas salinas (Ω·m)</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Tabla 771-C.IX — Resistividad de terrenos especiales</h2>
+    <table class="calc-table" id="soil-table-aea2">
+      <thead><tr><th>Tipo de suelo</th><th>Resistividad (Ω·m)</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Distancia de tierra lejana — 10·Re según jabalina típica</h2>
+    <table class="calc-table" id="re-table">
+      <thead><tr><th>Designación</th><th>Ø ext. (mm)</th><th>Longitud (m)</th><th>10·Re (m)</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Fórmulas utilizadas</h2>
+    <ul class="formula-list">
+      <li>Resistividad (Wenner, simplificada, a≫b): ρ = 2·π·a·R</li>
+      <li>Resistividad (Wenner completa, considera b): ρ = 4πaR / (1 + 2a/√(a²+4b²) − a/√(a²+b²))</li>
+      <li>Jabalina (Dwight): R₁ = ρ/(2πL)·(ln(4L/a) − 1), con a = radio = Ø/2</li>
+      <li>Paralelo de n jabalinas: Rn = (R₁ + (n−1)·Rm)/n, con Rm = ρ/(2π·s)</li>
+      <li>Malla (Sverak): R = ρ·[1/L_T + 1/√(20A)·(1+1/(1+h·√(20/A)))]</li>
+      <li>Malla (Laurent, comparación): R = ρ/4·√(π/A) + ρ/L_T</li>
+      <li>Cable enterrado (método de las imágenes): R = ρ/(4πL)·[ln(2L/a) + ln(L/h) − 2]</li>
+      <li>Combinación cable + jabalinas: R = (Rh·Rn − Rm²)/(Rh + Rn − 2·Rm), con Rm = ρ/(2π·d), d = L/2</li>
+      <li>Tierra lejana (AEA): d ≥ 10·Re, con Re = L/(ln(4L/a) − 1)</li>
+      <li>Sección del conductor de protección PE: S≤16 → S; 16&lt;S≤35 → 16; S&gt;35 → S/2 (mm², Tabla 771.18.III)</li>
+      <li>Tensión de contacto: Uc = R × IΔn; Ra máxima admisible = Uʟ / IΔn</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Criterios normativos aplicados</h2>
+    <ul class="formula-list">
+      <li>Esquema TT: la resistencia de puesta a tierra de protección debe respetar el límite fijado (AEA 90364-7-771.3.3.1: Rpat = 40 Ω máx. como límite general de predimensionamiento, Anexo 771-C).</li>
+      <li>Con protección diferencial: resistencia de puesta a tierra ≤ 10 Ω, preferentemente ≤ 5 Ω.</li>
+      <li>Sin protección diferencial adecuada: la tensión de contacto indirecto no debe superar 24 V (ambientes secos y húmedos) — Ley 19.587, IRAM 2281-Parte III.</li>
+      <li>Interruptor diferencial de uso general: corriente diferencial asignada (IΔn) ≤ 30 mA (IRAM 2301).</li>
+      <li>La toma de tierra de protección debe ubicarse a una distancia ≥ 10·Re de la toma de tierra de servicio.</li>
+      <li>Toda instalación debe permitir la medición de Rpat (barra de medición desmontable en la BEP).</li>
+      <li>Conductor de protección (PE): cobre aislado, bicolor verde-amarillo, sección mínima 2,5 mm².</li>
+      <li>Verificación final siempre con telurímetro (Norma IRAM 2281, Parte I): los cálculos de esta calculadora son de predimensionamiento.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Fuentes</h2>
+    <ul class="formula-list">
+      <li>AEA 90364-7-770/771, Reglamentación para la Ejecución de Instalaciones Eléctricas en Inmuebles (Asociación Electrotécnica Argentina).</li>
+      <li>Anexo 771-C — Instalaciones de puesta a tierra (predimensionamiento, tablas de resistividad, fórmulas de electrodos).</li>
+      <li>IRAM 2281 (Partes I y III) — Medición de puesta a tierra y protección contra contactos eléctricos.</li>
+      <li>IRAM 2301 — Interruptores diferenciales.</li>
+      <li>IRAM 2309/2310 — Jabalinas de puesta a tierra.</li>
+      <li>IEEE Std 80 / Std 81 — Fórmulas de malla (Sverak) y métodos de medición.</li>
+      <li>Reglamento de Instalaciones Eléctricas (Ley 19.587, condiciones generales de seguridad).</li>
+    </ul>
+  </div>
+
+</section>
+
+</main>
+
+<footer class="app-footer">
+  <p>Calculadora de predimensionamiento. Verificar siempre en obra con telurímetro homologado (Norma IRAM 2281, Parte I) antes de dar por aprobada una instalación.</p>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
