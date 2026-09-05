@@ -145,6 +145,10 @@ function fmt(x, decimals = 2) {
   return x.toLocaleString("es-AR", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
 }
 
+function escapeAttr(str) {
+  return String(str).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
 function okBadge(isOk, okText = "✅ Cumple", badText = "❌ No cumple") {
   const span = document.createElement("span");
   span.textContent = isOk ? okText : badText;
@@ -549,6 +553,84 @@ function updateProfileResults() {
   setResult("med_rho_final", stats.avg, 1);
 }
 
+// Dibuja el esquema topográfico E–S–H del método del 62% (picas en línea recta)
+function renderMethod62Diagram(D, dmin, positions) {
+  const svg = document.getElementById("pm_diagram");
+  if (!svg) return;
+
+  if (!Number.isFinite(D) || D <= 0) {
+    svg.innerHTML = `<text x="500" y="115" text-anchor="middle" class="diagram-empty">Ingresá D para ver el esquema</text>`;
+    return;
+  }
+
+  const W = 1000,
+    marginL = 70,
+    marginR = 70,
+    usableW = W - marginL - marginR,
+    axisY = 130;
+  const xFor = (meters) => marginL + (meters / D) * usableW;
+
+  const xE = xFor(0);
+  const xH = xFor(D);
+  const x62 = xFor(D * 0.62);
+  const xDmin = Number.isFinite(dmin) ? xFor(Math.min(dmin, D)) : null;
+
+  let svgParts = [];
+
+  svgParts.push(`
+    <defs>
+      <marker id="arrowRed" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L6,3 L0,6 Z" fill="#c0392b"></path>
+      </marker>
+      <marker id="arrowBlue" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L6,3 L0,6 Z" fill="#1f5fa8"></path>
+      </marker>
+    </defs>
+  `);
+
+  // Línea de suelo (eje de las 3 picas)
+  svgParts.push(`<line x1="${xE}" y1="${axisY}" x2="${xH}" y2="${axisY}" stroke="#9aa8a1" stroke-width="2"></line>`);
+
+  // Distancia mínima recomendada (referencia)
+  if (xDmin !== null && dmin < D) {
+    svgParts.push(`<line x1="${xDmin}" y1="${axisY - 34}" x2="${xDmin}" y2="${axisY + 34}" stroke="#c9a227" stroke-width="1.5" stroke-dasharray="4,3"></line>`);
+    svgParts.push(`<text x="${xDmin}" y="${axisY - 40}" text-anchor="middle" class="diagram-label diagram-label-muted">D mín. ${fmt(dmin, 1)} m</text>`);
+  }
+
+  // Flecha de corriente (I) — circuito E -> H, por debajo del eje
+  svgParts.push(`<line x1="${xE}" y1="${axisY + 55}" x2="${xH - 4}" y2="${axisY + 55}" stroke="#c0392b" stroke-width="2.5" marker-end="url(#arrowRed)"></line>`);
+  svgParts.push(`<text x="${(xE + xH) / 2}" y="${axisY + 72}" text-anchor="middle" class="diagram-label diagram-label-red">I — corriente de ensayo (circuito E↔H)</text>`);
+
+  // Flecha de tensión (V) — E -> S al 62%, por encima del eje
+  svgParts.push(`<line x1="${xE}" y1="${axisY - 55}" x2="${x62 - 4}" y2="${axisY - 55}" stroke="#1f5fa8" stroke-width="2.5" marker-end="url(#arrowBlue)"></line>`);
+  svgParts.push(`<text x="${(xE + x62) / 2}" y="${axisY - 63}" text-anchor="middle" class="diagram-label diagram-label-blue">V — tensión medida (E↔S)</text>`);
+
+  // Picas S (tensión) en cada posición del ensayo
+  positions.forEach((p) => {
+    const x = xFor(D * p.pct);
+    const isMain = p.pct === 0.62;
+    const r = isMain ? 7 : 5;
+    svgParts.push(`<line x1="${x}" y1="${axisY - 10}" x2="${x}" y2="${axisY + 10}" stroke="#1f5fa8" stroke-width="1.5"></line>`);
+    svgParts.push(`<circle cx="${x}" cy="${axisY}" r="${r}" fill="${isMain ? "#1f5fa8" : "#7fa8d9"}" stroke="#0d3a66" stroke-width="1"></circle>`);
+    svgParts.push(`<text x="${x}" y="${axisY + 26}" text-anchor="middle" class="diagram-tick">${Math.round(p.pct * 100)}%</text>`);
+    if (isMain) {
+      svgParts.push(`<text x="${x}" y="${axisY - 20}" text-anchor="middle" class="diagram-label diagram-label-blue">S 62% ★</text>`);
+    }
+  });
+
+  // Marcador E (electrodo bajo ensayo)
+  svgParts.push(`<circle cx="${xE}" cy="${axisY}" r="9" fill="#1f6f4a" stroke="#164f34" stroke-width="1.5"></circle>`);
+  svgParts.push(`<text x="${xE}" y="${axisY + 26}" text-anchor="middle" class="diagram-tick">0 m</text>`);
+  svgParts.push(`<text x="${xE}" y="${axisY - 74}" text-anchor="middle" class="diagram-label diagram-label-green">E — bajo ensayo</text>`);
+
+  // Marcador H (pica de corriente, fija, la más lejana)
+  svgParts.push(`<circle cx="${xH}" cy="${axisY}" r="9" fill="#c0392b" stroke="#7a2016" stroke-width="1.5"></circle>`);
+  svgParts.push(`<text x="${xH}" y="${axisY + 26}" text-anchor="middle" class="diagram-tick">${fmt(D, 1)} m</text>`);
+  svgParts.push(`<text x="${xH}" y="${axisY - 74}" text-anchor="middle" class="diagram-label diagram-label-red">H — corriente</text>`);
+
+  svg.innerHTML = svgParts.join("\n");
+}
+
 function updateMethod62() {
   const dim = parseFloat(document.getElementById("pm_dim").value);
   const D = parseFloat(document.getElementById("pm_D").value);
@@ -558,16 +640,22 @@ function updateMethod62() {
   setBadge("pm_dok", D >= dmin, "✅ Sí — lectura confiable", "❌ No — alejar la pica H");
 
   const positions = [
-    { pct: 0.52, posId: "pm_pos52", readId: "pm_r52", devId: "pm_dev52" },
-    { pct: 0.57, posId: "pm_pos57", readId: "pm_r57", devId: "pm_dev57" },
-    { pct: 0.62, posId: "pm_pos62", readId: "pm_r62", devId: "pm_dev62" },
-    { pct: 0.67, posId: "pm_pos67", readId: "pm_r67", devId: "pm_dev67" },
-    { pct: 0.72, posId: "pm_pos72", readId: "pm_r72", devId: "pm_dev72" },
+    { pct: 0.52, posId: "pm_pos52", readId: "pm_r52", devId: "pm_dev52", moveId: "pm_move52" },
+    { pct: 0.57, posId: "pm_pos57", readId: "pm_r57", devId: "pm_dev57", moveId: "pm_move57" },
+    { pct: 0.62, posId: "pm_pos62", readId: "pm_r62", devId: "pm_dev62", moveId: "pm_move62" },
+    { pct: 0.67, posId: "pm_pos67", readId: "pm_r67", devId: "pm_dev67", moveId: "pm_move67" },
+    { pct: 0.72, posId: "pm_pos72", readId: "pm_r72", devId: "pm_dev72", moveId: "pm_move72" },
   ];
 
+  renderMethod62Diagram(D, dmin, positions);
+
   const readings = [];
+  let prevMeters = 0;
   positions.forEach((p) => {
-    document.getElementById(p.posId).textContent = fmt(D * p.pct, 2);
+    const meters = D * p.pct;
+    document.getElementById(p.posId).textContent = fmt(meters, 2);
+    document.getElementById(p.moveId).textContent = Number.isFinite(meters) ? fmt(meters - prevMeters, 2) : "—";
+    prevMeters = Number.isFinite(meters) ? meters : prevMeters;
     const val = parseFloat(document.getElementById(p.readId).value);
     readings.push(val);
   });
@@ -662,7 +750,7 @@ function renderProtocolTable() {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${i + 1}</td>
-      <td><input type="text" class="pr-id" data-i="${i}" value="${row.id}"></td>
+      <td><input type="text" class="pr-id" data-i="${i}" value="${escapeAttr(row.id)}"></td>
       <td><input type="number" step="0.5" class="pr-D" data-i="${i}" value="${row.D}"></td>
       <td><input type="number" step="0.1" class="pr-dim" data-i="${i}" value="${row.dim}"></td>
       <td><input type="number" step="0.01" class="pr-p52" data-i="${i}" value="${row.p52}"></td>

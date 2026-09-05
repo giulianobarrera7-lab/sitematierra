@@ -317,12 +317,20 @@
 
   <div class="card">
     <h2>Método del 62% (caída de potencial) — resistencia de la PAT instalada</h2>
-    <p class="hint">Las 3 picas en línea recta: E = puesta a tierra que se mide, S = pica de potencial (se mueve), H = pica de corriente (la más lejana, inyecta la corriente de prueba).</p>
+    <p class="hint">Las 3 picas van en línea recta, alejándose de la puesta a tierra bajo ensayo.</p>
+
+    <div class="legend-row">
+      <span class="legend-item"><span class="legend-dot dot-e"></span><strong>E</strong> — toma de tierra bajo ensayo (punto fijo, origen)</span>
+      <span class="legend-item"><span class="legend-dot dot-h"></span><strong>H</strong> — pica de <strong>corriente</strong> (fija, la más lejana: inyecta la corriente de ensayo I)</span>
+      <span class="legend-item"><span class="legend-dot dot-s"></span><strong>S</strong> — pica de <strong>tensión / potencial</strong> (se desplaza entre E y H: mide la tensión V)</span>
+    </div>
+    <p class="hint">La resistencia medida es R = V / I. Por eso hay que distinguir bien las dos picas: <strong>H fija = corriente</strong>, <strong>S móvil = tensión</strong>. Cargá abajo la mayor dimensión de tu sistema de PAT y la distancia D a la que vas a clavar H; el resto (dónde clavar S en cada lectura y cuánto moverla) se calcula solo.</p>
+
     <div class="grid-3">
       <label>Mayor dimensión del sistema medido (m)
         <input type="number" id="pm_dim" value="1.5" step="0.1" min="0.1">
       </label>
-      <label>D — distancia desde E hasta la pica H (m)
+      <label>D — distancia desde E hasta la pica H de corriente (m)
         <input type="number" id="pm_D" value="13" step="0.5" min="0.5">
       </label>
       <label>Factor de D recomendado (× dimensión)
@@ -332,16 +340,21 @@
     <div class="result-row"><span class="result-label">D mínima recomendada</span><span class="result-value" id="pm_dmin">—</span><span class="unit">m</span></div>
     <div class="result-row"><span class="result-label">¿D alcanza?</span><span class="result-value" id="pm_dok">—</span></div>
 
+    <div class="diagram-wrap">
+      <svg id="pm_diagram" viewBox="0 0 1000 230" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Esquema topográfico del método del 62%"></svg>
+    </div>
+
     <table class="calc-table">
-      <thead><tr><th>Posición de S</th><th>% de D</th><th>Distancia (m)</th><th>R leída (Ω)</th><th>Desvío vs 62%</th></tr></thead>
+      <thead><tr><th>Posición de S</th><th>% de D</th><th>Distancia desde E (m)</th><th>Mover la pica S (m)</th><th>R leída (Ω)</th><th>Desvío vs 62%</th></tr></thead>
       <tbody>
-        <tr><td>Atrás −10%</td><td>52%</td><td id="pm_pos52">—</td><td><input type="number" class="pm-reading" id="pm_r52" value="0.9" step="0.01"></td><td id="pm_dev52">—</td></tr>
-        <tr><td>Atrás −5%</td><td>57%</td><td id="pm_pos57">—</td><td><input type="number" class="pm-reading" id="pm_r57" value="0.9" step="0.01"></td><td id="pm_dev57">—</td></tr>
-        <tr><td>62% de D — lectura principal</td><td>62%</td><td id="pm_pos62">—</td><td><input type="number" class="pm-reading" id="pm_r62" value="1.0" step="0.01"></td><td id="pm_dev62">—</td></tr>
-        <tr><td>Adelante +5%</td><td>67%</td><td id="pm_pos67">—</td><td><input type="number" class="pm-reading" id="pm_r67" value="1.1" step="0.01"></td><td id="pm_dev67">—</td></tr>
-        <tr><td>Adelante +10%</td><td>72%</td><td id="pm_pos72">—</td><td><input type="number" class="pm-reading" id="pm_r72" value="1.1" step="0.01"></td><td id="pm_dev72">—</td></tr>
+        <tr><td>Atrás −10%</td><td>52%</td><td id="pm_pos52">—</td><td id="pm_move52">—</td><td><input type="number" class="pm-reading" id="pm_r52" value="0.9" step="0.01"></td><td id="pm_dev52">—</td></tr>
+        <tr><td>Atrás −5%</td><td>57%</td><td id="pm_pos57">—</td><td id="pm_move57">—</td><td><input type="number" class="pm-reading" id="pm_r57" value="0.9" step="0.01"></td><td id="pm_dev57">—</td></tr>
+        <tr class="row-primary"><td>62% de D — lectura principal</td><td>62%</td><td id="pm_pos62">—</td><td id="pm_move62">—</td><td><input type="number" class="pm-reading" id="pm_r62" value="1.0" step="0.01"></td><td id="pm_dev62">—</td></tr>
+        <tr><td>Adelante +5%</td><td>67%</td><td id="pm_pos67">—</td><td id="pm_move67">—</td><td><input type="number" class="pm-reading" id="pm_r67" value="1.1" step="0.01"></td><td id="pm_dev67">—</td></tr>
+        <tr><td>Adelante +10%</td><td>72%</td><td id="pm_pos72">—</td><td id="pm_move72">—</td><td><input type="number" class="pm-reading" id="pm_r72" value="1.1" step="0.01"></td><td id="pm_dev72">—</td></tr>
       </tbody>
     </table>
+    <p class="hint">"Mover la pica S" es la distancia a desplazarla desde su posición anterior (la primera fila se mide desde E). Así no hace falta recalcular nada en el campo: contás esos metros con la cinta y ya estás en la posición correcta.</p>
 
     <div class="grid-2">
       <label>Tolerancia de curva plana (±%)
