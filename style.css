@@ -177,6 +177,15 @@ input:focus, select:focus {
   line-height: 1.5;
 }
 
+.hint-warning {
+  background: #fdf3d9;
+  border: 1px solid #e8c968;
+  color: #6b5510;
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+}
+
 .legend-row {
   display: flex;
   flex-wrap: wrap;

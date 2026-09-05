@@ -99,9 +99,16 @@ function meshResistanceLaurent(rho, LT, A) {
   return (rho / 4) * Math.sqrt(Math.PI / A) + rho / LT;
 }
 
-// Conductor horizontal enterrado — método de las imágenes
+// Conductor horizontal enterrado — fórmula AEA 90364-7 (verificada contra el caso
+// publicado en Aquino et al., "Diseño y Cálculo del Sistema de PAT para el
+// Instituto de Biotecnología Misiones", UNaM, 2024: con ρ=198,76 Ω·m, L=60 m,
+// h=0,9 m y d=6,45 mm da R≈6,72 Ω, igual al valor de esa referencia).
+// R = ρ/(2πL) · [ln(2L/a) + ln(L/h) − 2 + 2h/L], con a = radio del conductor.
+// Se trunca la serie de corrección en el término lineal (2h/L): los términos
+// siguientes (h²/L², h⁴/L⁴, …) son despreciables cuando h ≪ L, como es el caso
+// habitual de un conductor de PAT enterrado.
 function buriedCableResistance(rho, L, a, h) {
-  return (rho / (4 * Math.PI * L)) * (Math.log((2 * L) / a) + Math.log(L / h) - 2);
+  return (rho / (2 * Math.PI * L)) * (Math.log((2 * L) / a) + Math.log(L / h) - 2 + (2 * h) / L);
 }
 
 // Radio equivalente de un cable a partir de su sección (mm²) -> a en m
@@ -278,6 +285,8 @@ function updateTab1() {
   // Propaga a la pestaña 2
   const rhoDisplay = document.getElementById("m_rho_display");
   if (rhoDisplay) rhoDisplay.textContent = fmt(rho, 1);
+  const rhoWarning = document.getElementById("m_rho_warning");
+  if (rhoWarning) rhoWarning.classList.toggle("hidden", !(Number.isFinite(rho) && rho > 2000));
 }
 
 function initTab1() {
