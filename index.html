@@ -356,6 +356,12 @@
     </table>
     <p class="hint">"Mover la pica S" es la distancia a desplazarla desde su posición anterior (la primera fila se mide desde E). Así no hace falta recalcular nada en el campo: contás esos metros con la cinta y ya estás en la posición correcta.</p>
 
+    <h3 class="card-subtitle">Curva de resistencia — ¿está plana?</h3>
+    <p class="hint">Esto es lo que en la práctica se llama "curva del 62%": se grafica la R leída contra la posición de S. Si el tramo alrededor del 62% queda <strong>horizontal</strong> (dentro de la banda sombreada), el suelo es uniforme ahí y la lectura es confiable. Si la curva sigue subiendo o bajando, todavía estás dentro de la zona de influencia de los electrodos: hay que alejar la pica H (aumentar D) y repetir todo el barrido.</p>
+    <div class="diagram-wrap">
+      <svg id="pm_chart" viewBox="0 0 1000 280" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Curva de R vs. posición de S"></svg>
+    </div>
+
     <div class="grid-2">
       <label>Tolerancia de curva plana (±%)
         <input type="number" id="pm_tol" value="10" step="1" min="1">

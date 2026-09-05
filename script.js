@@ -631,6 +631,102 @@ function renderMethod62Diagram(D, dmin, positions) {
   svg.innerHTML = svgParts.join("\n");
 }
 
+// Dibuja la curva R vs. % de D (la "curva del 62%"): banda de tolerancia +
+// lecturas conectadas, para ver de un vistazo si el tramo central es plano.
+function renderMethod62Chart(positions, readings, r62, tol, isFlat) {
+  const svg = document.getElementById("pm_chart");
+  if (!svg) return;
+
+  const finiteReadings = readings.filter((v) => Number.isFinite(v));
+  if (finiteReadings.length === 0) {
+    svg.innerHTML = `<text x="500" y="140" text-anchor="middle" class="diagram-empty">Cargá las lecturas de R para ver la curva</text>`;
+    return;
+  }
+
+  const W = 1000,
+    H = 280,
+    marginL = 70,
+    marginR = 40,
+    marginT = 30,
+    marginB = 55;
+  const usableW = W - marginL - marginR;
+  const usableH = H - marginT - marginB;
+
+  const pctMin = 0.52,
+    pctMax = 0.72;
+  const xFor = (pct) => marginL + ((pct - pctMin) / (pctMax - pctMin)) * usableW;
+
+  const hasR62 = Number.isFinite(r62) && r62 !== 0;
+  const bandLo = hasR62 ? r62 * (1 - tol) : null;
+  const bandHi = hasR62 ? r62 * (1 + tol) : null;
+
+  let yMin = Math.min(...finiteReadings);
+  let yMax = Math.max(...finiteReadings);
+  if (hasR62) {
+    yMin = Math.min(yMin, bandLo);
+    yMax = Math.max(yMax, bandHi);
+  }
+  if (yMin === yMax) {
+    yMin -= 1;
+    yMax += 1;
+  }
+  const pad = (yMax - yMin) * 0.2;
+  yMin -= pad;
+  yMax += pad;
+
+  const yFor = (v) => marginT + (1 - (v - yMin) / (yMax - yMin)) * usableH;
+
+  let parts = [];
+
+  // Ejes
+  parts.push(`<line x1="${marginL}" y1="${marginT}" x2="${marginL}" y2="${marginT + usableH}" stroke="#c7d2cb" stroke-width="1.5"></line>`);
+  parts.push(`<line x1="${marginL}" y1="${marginT + usableH}" x2="${marginL + usableW}" y2="${marginT + usableH}" stroke="#c7d2cb" stroke-width="1.5"></line>`);
+
+  // Banda de tolerancia alrededor de la lectura al 62%
+  if (hasR62) {
+    const yLo = yFor(bandHi);
+    const yHi = yFor(bandLo);
+    const bandColor = isFlat ? "#1f8a5c" : "#c9a227";
+    parts.push(`<rect x="${marginL}" y="${yLo}" width="${usableW}" height="${Math.max(yHi - yLo, 1)}" fill="${bandColor}" fill-opacity="0.12"></rect>`);
+    parts.push(`<line x1="${marginL}" y1="${yFor(r62)}" x2="${marginL + usableW}" y2="${yFor(r62)}" stroke="${bandColor}" stroke-width="1.5" stroke-dasharray="5,4"></line>`);
+    parts.push(`<text x="${marginL + usableW - 4}" y="${yLo - 6}" text-anchor="end" class="diagram-tick">±${Math.round(tol * 100)}% de R(62%)</text>`);
+  }
+
+  // Línea que conecta las lecturas disponibles
+  const pathPoints = positions
+    .map((p, i) => (Number.isFinite(readings[i]) ? `${xFor(p.pct)},${yFor(readings[i])}` : null))
+    .filter(Boolean);
+  if (pathPoints.length >= 2) {
+    parts.push(`<polyline points="${pathPoints.join(" ")}" fill="none" stroke="#1f5fa8" stroke-width="2.5"></polyline>`);
+  }
+
+  // Puntos de cada lectura
+  positions.forEach((p, i) => {
+    const v = readings[i];
+    if (!Number.isFinite(v)) return;
+    const x = xFor(p.pct);
+    const y = yFor(v);
+    const isMain = p.pct === 0.62;
+    const withinBand = hasR62 ? v >= bandLo && v <= bandHi : true;
+    const color = withinBand ? "#1f5fa8" : "#c0392b";
+    parts.push(`<circle cx="${x}" cy="${y}" r="${isMain ? 8 : 6}" fill="${color}" stroke="#ffffff" stroke-width="1.5"></circle>`);
+    parts.push(`<text x="${x}" y="${y - 14}" text-anchor="middle" class="diagram-tick">${fmt(v, 2)}</text>`);
+    parts.push(`<text x="${x}" y="${marginT + usableH + 22}" text-anchor="middle" class="diagram-tick">${Math.round(p.pct * 100)}%</text>`);
+  });
+
+  // Etiquetas de eje
+  parts.push(`<text x="${marginL - 10}" y="${marginT + 4}" text-anchor="end" class="diagram-tick">${fmt(yMax, 1)}</text>`);
+  parts.push(`<text x="${marginL - 10}" y="${marginT + usableH}" text-anchor="end" class="diagram-tick">${fmt(yMin, 1)}</text>`);
+  parts.push(`<text x="${marginL + usableW / 2}" y="${H - 8}" text-anchor="middle" class="diagram-tick">Posición de S (% de D)</text>`);
+  parts.push(
+    `<text x="${marginL}" y="${marginT - 10}" text-anchor="start" class="diagram-label ${isFlat ? "diagram-label-green" : "diagram-label-muted"}">${
+      isFlat ? "✅ Curva plana en la zona de tolerancia" : "⚠ Curva todavía no está plana"
+    }</text>`
+  );
+
+  svg.innerHTML = parts.join("\n");
+}
+
 function updateMethod62() {
   const dim = parseFloat(document.getElementById("pm_dim").value);
   const D = parseFloat(document.getElementById("pm_D").value);
@@ -676,6 +772,8 @@ function updateMethod62() {
   const tol = parseFloat(document.getElementById("pm_tol").value) / 100;
   const isFlat = Number.isFinite(maxDev) && roundTo(maxDev, 6) <= roundTo(tol, 6);
   setBadge("pm_flat", isFlat, "✅ Curva plana — lectura válida", "❌ Dispersa — alejar H y repetir");
+
+  renderMethod62Chart(positions, readings, r62, tol, isFlat);
 
   const adoptMode = document.getElementById("pm_adopt").value;
   const adopted = adoptMode === "62" ? r62 : avg5;

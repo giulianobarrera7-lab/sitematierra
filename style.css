@@ -124,6 +124,13 @@ main {
   letter-spacing: -0.005em;
 }
 
+.card-subtitle {
+  margin: 0 0 0.4rem;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--primary-dark);
+}
+
 .grid-2, .grid-3 {
   display: grid;
   gap: 0.9rem 1.1rem;
