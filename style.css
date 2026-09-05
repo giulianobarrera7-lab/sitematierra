@@ -125,11 +125,40 @@ main {
 }
 
 .card-subtitle {
-  margin: 0 0 0.4rem;
-  font-size: 0.92rem;
+  margin: 1.1rem 0 0.6rem;
+  font-size: 0.98rem;
   font-weight: 700;
   color: var(--primary-dark);
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
 }
+
+.card-subtitle:first-of-type { margin-top: 0.2rem; }
+
+.ect-usage {
+  font-weight: 600;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.ect-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.6rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+}
+
+.ect-badge-tt { background: #1f6f4a; }
+.ect-badge-tn { background: #1f5fa8; }
+.ect-badge-it { background: #8a4fbf; }
 
 .grid-2, .grid-3 {
   display: grid;

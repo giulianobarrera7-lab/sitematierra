@@ -434,6 +434,125 @@
 <section class="tab-panel" id="tab-referencias">
 
   <div class="card">
+    <h2>Esquemas de Conexión a Tierra (ECT): TT / TN / IT</h2>
+    <p class="hint">El ECT define dos cosas: cómo se conecta a tierra la <strong>fuente</strong> (el neutro del transformador de la red) y cómo se conectan a tierra las <strong>masas</strong> de la instalación (heladera, tablero, estructura metálica, etc.). Se identifica con 2 letras (AEA 90364-3, cláusula 312.2):</p>
+    <ul class="formula-list">
+      <li><strong>1ª letra → la fuente:</strong> T = un punto (el neutro) va directo a tierra. I = ningún punto va a tierra, o va a través de una impedancia alta (fuente "aislada" o "flotante").</li>
+      <li><strong>2ª letra → las masas de la instalación:</strong> T = van a SU PROPIA tierra, independiente de la de la fuente. N = van conectadas directamente al mismo punto de tierra del neutro de la fuente (por el conductor de protección).</li>
+    </ul>
+
+    <h3 class="card-subtitle">
+      <span class="ect-badge ect-badge-tt">TT</span>
+      Tierra – Tierra <span class="ect-usage">(la que usás en viviendas)</span>
+    </h3>
+    <div class="diagram-wrap">
+      <svg viewBox="0 0 600 210" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Esquema TT">
+        <rect x="20" y="25" width="200" height="55" rx="8" fill="#eef6f1" stroke="#1f8a5c" stroke-width="1.5"></rect>
+        <text x="120" y="57" text-anchor="middle" class="diagram-tick" font-weight="700">Red / Transformador</text>
+        <line x1="120" y1="80" x2="120" y2="115" stroke="#5b6b64" stroke-width="2"></line>
+        <circle cx="120" cy="80" r="4" fill="#1c2624"></circle>
+        <path d="M100,115 h40 M106,124 h28 M112,133 h16" stroke="#1c2624" stroke-width="2" fill="none"></path>
+        <text x="120" y="150" text-anchor="middle" class="diagram-tick">Rb (tierra de servicio)</text>
+
+        <line x1="220" y1="52" x2="380" y2="52" stroke="#9aa8a1" stroke-width="2"></line>
+        <text x="300" y="42" text-anchor="middle" class="diagram-tick">L1 L2 L3 N</text>
+
+        <rect x="380" y="25" width="200" height="55" rx="8" fill="#eaf1fb" stroke="#1f5fa8" stroke-width="1.5"></rect>
+        <text x="480" y="50" text-anchor="middle" class="diagram-tick" font-weight="700">Instalación</text>
+        <text x="480" y="66" text-anchor="middle" class="diagram-tick" font-weight="700">(masas)</text>
+        <line x1="480" y1="80" x2="480" y2="115" stroke="#5b6b64" stroke-width="2"></line>
+        <circle cx="480" cy="80" r="4" fill="#1c2624"></circle>
+        <path d="M460,115 h40 M466,124 h28 M472,133 h16" stroke="#1c2624" stroke-width="2" fill="none"></path>
+        <text x="480" y="150" text-anchor="middle" class="diagram-tick">Ra (tierra de protección)</text>
+
+        <line x1="150" y1="133" x2="450" y2="133" stroke="#c0392b" stroke-width="1.5" stroke-dasharray="5,4"></line>
+        <text x="300" y="128" text-anchor="middle" class="diagram-label diagram-label-red">✕ tierras independientes (≥10·Re)</text>
+        <text x="300" y="185" text-anchor="middle" class="diagram-label diagram-label-green">Requiere interruptor diferencial (ID)</text>
+      </svg>
+    </div>
+    <ul class="formula-list">
+      <li><strong>Uso:</strong> obligatorio en viviendas unifamiliares (AEA 90364-7-770/771) y, en general, en la mayoría de las instalaciones domiciliarias y comerciales en Argentina.</li>
+      <li><strong>Protección clave:</strong> interruptor diferencial (ID, ≤30 mA en circuitos generales). Sin diferencial, un TT casi nunca protege: la Rpat sola rara vez es lo bastante baja como para que la tensión de contacto quede por debajo de 24-50 V.</li>
+      <li><strong>Para recordar:</strong> "TT = dos tierras separadas — la mía y la del poste, cada una con su propia jabalina."</li>
+    </ul>
+
+    <h3 class="card-subtitle">
+      <span class="ect-badge ect-badge-tn">TN</span>
+      Tierra – Neutro <span class="ect-usage">(típico en galpones/industria)</span>
+    </h3>
+    <div class="diagram-wrap">
+      <svg viewBox="0 0 600 210" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Esquema TN">
+        <rect x="20" y="25" width="200" height="55" rx="8" fill="#eef6f1" stroke="#1f8a5c" stroke-width="1.5"></rect>
+        <text x="120" y="57" text-anchor="middle" class="diagram-tick" font-weight="700">Red / Transformador</text>
+        <line x1="120" y1="80" x2="120" y2="140" stroke="#5b6b64" stroke-width="2"></line>
+        <circle cx="120" cy="80" r="4" fill="#1c2624"></circle>
+        <path d="M100,140 h40 M106,149 h28 M112,158 h16" stroke="#1c2624" stroke-width="2" fill="none"></path>
+        <text x="120" y="175" text-anchor="middle" class="diagram-tick">Rb (tierra del sistema)</text>
+
+        <line x1="220" y1="52" x2="380" y2="52" stroke="#9aa8a1" stroke-width="2"></line>
+        <text x="300" y="42" text-anchor="middle" class="diagram-tick">L1 L2 L3 N</text>
+
+        <rect x="380" y="25" width="200" height="55" rx="8" fill="#eaf1fb" stroke="#1f5fa8" stroke-width="1.5"></rect>
+        <text x="480" y="50" text-anchor="middle" class="diagram-tick" font-weight="700">Instalación</text>
+        <text x="480" y="66" text-anchor="middle" class="diagram-tick" font-weight="700">(masas del galpón)</text>
+
+        <path d="M120,80 V113 H480 V80" stroke="#1f8a5c" stroke-width="2.5" fill="none"></path>
+        <text x="300" y="105" text-anchor="middle" class="diagram-label diagram-label-green">PE (o PEN): mismo punto de tierra</text>
+      </svg>
+    </div>
+    <ul class="formula-list">
+      <li><strong>Subtipos:</strong> TN-S (neutro y PE separados en todo el recorrido — el más usado y más seguro), TN-C (un único conductor PEN hace de neutro y PE — prohibido dentro de un edificio), TN-C-S (PEN en la acometida, se separa en N + PE dentro del predio — típico de industrias/galpones con transformador propio).</li>
+      <li><strong>Uso:</strong> instalaciones industriales, galpones o plantas donde toda la estructura metálica ("masa" del galpón) se vincula al mismo sistema de tierra que el neutro de la fuente.</li>
+      <li><strong>Protección clave:</strong> como la falla fase-masa es casi un cortocircuito franco, corta el interruptor automático (termomagnético) por la corriente altísima que circula — no depende tanto del diferencial, aunque se recomienda igual como protección adicional.</li>
+      <li><strong>Para recordar:</strong> "TN = mismo Neutro para todo — la masa 'toma prestada' la tierra del transformador."</li>
+    </ul>
+
+    <h3 class="card-subtitle">
+      <span class="ect-badge ect-badge-it">IT</span>
+      Aislada – Tierra <span class="ect-usage">(quirófanos, procesos críticos)</span>
+    </h3>
+    <div class="diagram-wrap">
+      <svg viewBox="0 0 600 210" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Esquema IT">
+        <rect x="20" y="25" width="200" height="55" rx="8" fill="#eef6f1" stroke="#1f8a5c" stroke-width="1.5"></rect>
+        <text x="120" y="57" text-anchor="middle" class="diagram-tick" font-weight="700">Red / Transformador</text>
+        <rect x="150" y="14" width="46" height="18" rx="4" fill="#fdf3d9" stroke="#c9a227"></rect>
+        <text x="173" y="27" text-anchor="middle" class="diagram-tick">CPI</text>
+        <line x1="120" y1="80" x2="120" y2="113" stroke="#5b6b64" stroke-width="2" stroke-dasharray="4,4"></line>
+        <circle cx="120" cy="80" r="4" fill="#1c2624"></circle>
+        <text x="150" y="102" class="diagram-label diagram-label-muted">✕ Zn</text>
+        <text x="120" y="130" text-anchor="middle" class="diagram-tick">sin tierra (Zn alta)</text>
+
+        <line x1="220" y1="52" x2="380" y2="52" stroke="#9aa8a1" stroke-width="2"></line>
+        <text x="300" y="42" text-anchor="middle" class="diagram-tick">L1 L2 L3</text>
+
+        <rect x="380" y="25" width="200" height="55" rx="8" fill="#eaf1fb" stroke="#1f5fa8" stroke-width="1.5"></rect>
+        <text x="480" y="50" text-anchor="middle" class="diagram-tick" font-weight="700">Instalación</text>
+        <text x="480" y="66" text-anchor="middle" class="diagram-tick" font-weight="700">(masas)</text>
+        <line x1="480" y1="80" x2="480" y2="115" stroke="#5b6b64" stroke-width="2"></line>
+        <circle cx="480" cy="80" r="4" fill="#1c2624"></circle>
+        <path d="M460,115 h40 M466,124 h28 M472,133 h16" stroke="#1c2624" stroke-width="2" fill="none"></path>
+        <text x="480" y="150" text-anchor="middle" class="diagram-tick">Ra (tierra propia)</text>
+        <text x="300" y="185" text-anchor="middle" class="diagram-label diagram-label-muted">1ª falla → alarma (CPI). 2ª falla → corte.</text>
+      </svg>
+    </div>
+    <ul class="formula-list">
+      <li><strong>Uso:</strong> donde no se puede permitir que se corte el suministro ante la primera falla — quirófanos, salas de terapia intensiva, procesos industriales críticos.</li>
+      <li><strong>Protección clave:</strong> como la fuente está aislada de tierra, una única falla no genera corriente de defecto significativa y nada se dispara. Se necesita un <strong>CPI (Controlador Permanente de Aislación)</strong> que avisa por alarma que hay una fuga, sin cortar el suministro. Recién si aparece una <strong>segunda falla</strong> (en otra fase o polo) se forma un cortocircuito real y ahí sí actúan las protecciones normales.</li>
+      <li><strong>Para recordar:</strong> "IT = fuente Islada — sigue funcionando aunque haya una falla, hasta que aparece la segunda."</li>
+    </ul>
+
+    <table class="calc-table">
+      <thead><tr><th>Esquema</th><th>Neutro de la fuente</th><th>Masas de la instalación</th><th>Protección típica</th><th>Uso típico</th></tr></thead>
+      <tbody>
+        <tr><td><strong>TT</strong></td><td>A tierra (Rb)</td><td>Tierra propia e independiente (Ra)</td><td>Interruptor diferencial (ID)</td><td>Viviendas, comercios</td></tr>
+        <tr><td><strong>TN</strong></td><td>A tierra (Rb)</td><td>Conectadas al mismo punto de tierra vía PE/PEN</td><td>Interruptor automático (corte por sobrecorriente)</td><td>Industria, galpones, plantas</td></tr>
+        <tr><td><strong>IT</strong></td><td>Aislado o con impedancia alta</td><td>Tierra propia (Ra)</td><td>CPI (controlador de aislación) + corte en la 2ª falla</td><td>Quirófanos, procesos críticos</td></tr>
+      </tbody>
+    </table>
+    <p class="hint">Fuente: AEA 90364-3 cláusula 312.2 (definición general de los ECT) y AEA 90364-7-770 cláusula 770.3 (ECT exigido en viviendas: TT).</p>
+  </div>
+
+  <div class="card">
     <h2>Resistividad típica según el terreno (Ω·m)</h2>
     <table class="calc-table" id="soil-table-simple">
       <thead><tr><th>Naturaleza del terreno</th><th>Resistividad (Ω·m)</th></tr></thead>
